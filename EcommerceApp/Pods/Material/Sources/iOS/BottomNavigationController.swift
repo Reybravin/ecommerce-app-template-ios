@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2016, Daniel Dahan and CosmicMind, Inc. <http://cosmicmind.com>.
+ * Copyright (C) 2015 - 2018, Daniel Dahan and CosmicMind, Inc. <http://cosmicmind.com>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,140 +30,118 @@
 
 import UIKit
 
-public class BottomNavigationFadeAnimatedTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
-	public func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-		let fromView : UIView = transitionContext.view(forKey: UITransitionContextViewKey.from)!
-		let toView : UIView = transitionContext.view(forKey: UITransitionContextViewKey.to)!
-		toView.alpha = 0
-		
-		transitionContext.containerView.addSubview(fromView)
-		transitionContext.containerView.addSubview(toView)
-		
-		UIView.animate(withDuration: transitionDuration(using: transitionContext),
-			animations: { _ in
-				toView.alpha = 1
-				fromView.alpha = 0
-			}) { _ in
-				transitionContext.completeTransition(true)
-			}
-	}
-	
-	public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-		return 0.35
-	}
+extension UIViewController {
+  /**
+   A convenience property that provides access to the BottomNavigationController.
+   This is the recommended method of accessing the BottomNavigationController
+   through child UIViewControllers.
+   */
+  public var bottomNavigationController: BottomNavigationController? {
+    return traverseViewControllerHierarchyForClassType()
+  }
 }
 
-@objc(BottomNavigationTransitionAnimation)
-public enum BottomNavigationTransitionAnimation: Int {
-	case none
-	case fade
-}
-
-open class BottomNavigationController: UITabBarController, UITabBarControllerDelegate {
-	/// The transition animation to use when selecting a new tab.
-	open var transitionAnimation = BottomNavigationTransitionAnimation.fade
-	
-	/**
-     An initializer that initializes the object with a NSCoder object.
-     - Parameter aDecoder: A NSCoder instance.
-     */
-	public required init?(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
-	}
-	
-	/**
-     An initializer that initializes the object with an Optional nib and bundle.
-     - Parameter nibNameOrNil: An Optional String for the nib.
-     - Parameter bundle: An Optional NSBundle where the nib is located.
-     */
-	public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-	}
-	
-    /// An initializer that accepts no parameters.
-	public init() {
-		super.init(nibName: nil, bundle: nil)
-	}
-    
-    /**
-     An initializer that initializes the object an Array of UIViewControllers.
-     - Parameter viewControllers: An Array of UIViewControllers.
-     */
-    public init(viewControllers: [UIViewController]) {
-        super.init(nibName: nil, bundle: nil)
-        self.viewControllers = viewControllers
+open class BottomNavigationController: UITabBarController {
+  /**
+   An initializer that initializes the object with a NSCoder object.
+   - Parameter aDecoder: A NSCoder instance.
+   */
+  public required init?(coder aDecoder: NSCoder) {
+    super.init(coder: aDecoder)
+  }
+  
+  /**
+   An initializer that initializes the object with an Optional nib and bundle.
+   - Parameter nibNameOrNil: An Optional String for the nib.
+   - Parameter bundle: An Optional NSBundle where the nib is located.
+   */
+  public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+  }
+  
+  /// An initializer that accepts no parameters.
+  public init() {
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  /**
+   An initializer that initializes the object an Array of UIViewControllers.
+   - Parameter viewControllers: An Array of UIViewControllers.
+   */
+  public init(viewControllers: [UIViewController]) {
+    super.init(nibName: nil, bundle: nil)
+    self.viewControllers = viewControllers
+  }
+  
+  open override func viewDidLoad() {
+    super.viewDidLoad()
+    prepare()
+  }
+  
+  open override func viewWillLayoutSubviews() {
+    super.viewWillLayoutSubviews()
+    layoutSubviews()
+  }
+  
+  /**
+   To execute in the order of the layout chain, override this
+   method. `layoutSubviews` should be called immediately, unless you
+   have a certain need.
+   */
+  open func layoutSubviews() {
+    if let v = tabBar.items {
+      for item in v {
+        if .phone == Device.userInterfaceIdiom {
+          if nil == item.title {
+            let inset: CGFloat = 7
+            item.imageInsets = UIEdgeInsetsMake(inset, 0, -inset, 0)
+          } else {
+            let inset: CGFloat = 6
+            item.titlePositionAdjustment.vertical = -inset
+          }
+        } else {
+          if nil == item.title {
+            let inset: CGFloat = 9
+            item.imageInsets = UIEdgeInsetsMake(inset, 0, -inset, 0)
+          } else {
+            let inset: CGFloat = 3
+            item.imageInsets = UIEdgeInsetsMake(inset, 0, -inset, 0)
+            item.titlePositionAdjustment.vertical = -inset
+          }
+        }
+      }
     }
-	
-	open override func viewDidLoad() {
-		super.viewDidLoad()
-		prepare()
-	}
-	
-	open override func viewWillLayoutSubviews() {
-		super.viewWillLayoutSubviews()
-		layoutSubviews()
-	}
-	
-	open func layoutSubviews() {
-		if let v = tabBar.items {
-			for item in v {
-				if .phone == Device.userInterfaceIdiom {
-					if nil == item.title {
-						let inset: CGFloat = 7
-						item.imageInsets = UIEdgeInsetsMake(inset, 0, -inset, 0)
-					} else {
-						let inset: CGFloat = 6
-						item.titlePositionAdjustment.vertical = -inset
-					}
-				} else {
-					if nil == item.title {
-						let inset: CGFloat = 9
-						item.imageInsets = UIEdgeInsetsMake(inset, 0, -inset, 0)
-					} else {
-						let inset: CGFloat = 3
-						item.imageInsets = UIEdgeInsetsMake(inset, 0, -inset, 0)
-						item.titlePositionAdjustment.vertical = -inset
-					}
-				}
-			}
-		}
-        
-        tabBar.divider.reload()
-	}
-	
-	/**
-     Prepares the view instance when intialized. When subclassing,
-     it is recommended to override the prepare method
-     to initialize property values and other setup operations.
-     The super.prepare method should always be called immediately
-     when subclassing.
-     */
-	open func prepare() {
-		view.clipsToBounds = true
-		view.contentScaleFactor = Screen.scale
-		view.backgroundColor = .white
-        delegate = self
-        prepareTabBar()
-	}
-	
-	/// Handles transitions when tabBarItems are pressed.
-	open func tabBarController(_ tabBarController: UITabBarController, animationControllerForTransitionFrom fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-		let fVC: UIViewController? = fromVC
-		let tVC: UIViewController? = toVC
-		if nil == fVC || nil == tVC {
-			return nil
-		}
-		return .fade == transitionAnimation ? BottomNavigationFadeAnimatedTransitioning() : nil
-	}
-	
-	/// Prepares the tabBar.
-	private func prepareTabBar() {
-		tabBar.heightPreset = .normal
-        tabBar.depthPreset = .depth1
-        tabBar.dividerAlignment = .top
-        let image = UIImage.image(with: Color.clear, size: CGSize(width: 1, height: 1))
-		tabBar.shadowImage = image
-		tabBar.backgroundImage = image
-		tabBar.backgroundColor = .white
-	}
+    
+    tabBar.layoutDivider()
+  }
+  
+  /**
+   Prepares the view instance when intialized. When subclassing,
+   it is recommended to override the prepare method
+   to initialize property values and other setup operations.
+   The super.prepare method should always be called immediately
+   when subclassing.
+   */
+  open func prepare() {
+    view.clipsToBounds = true
+    view.backgroundColor = .white
+    view.contentScaleFactor = Screen.scale
+    
+    prepareTabBar()
+  }
+}
+
+fileprivate extension BottomNavigationController {
+  /// Prepares the tabBar.
+  func prepareTabBar() {
+    tabBar.isTranslucent = false
+    tabBar.heightPreset = .normal
+    tabBar.dividerColor = Color.grey.lighten2
+    tabBar.dividerAlignment = .top
+    
+    let image = UIImage()
+    tabBar.shadowImage = image
+    tabBar.backgroundImage = image
+    tabBar.backgroundColor = .white
+  }
 }

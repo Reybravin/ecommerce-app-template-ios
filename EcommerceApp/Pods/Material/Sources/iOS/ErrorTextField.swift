@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2016, Daniel Dahan and CosmicMind, Inc. <http://cosmicmind.com>.
+ * Copyright (C) 2015 - 2018, Daniel Dahan and CosmicMind, Inc. <http://cosmicmind.com>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,66 @@
 import UIKit
 
 open class ErrorTextField: TextField {
-    /// Controls the visibility of detailLabel
-    @IBInspectable
-    open var isErrorRevealed = false {
-        didSet {
-            detailLabel.isHidden = !isErrorRevealed
-            layoutSubviews()
-        }
+  
+  /// The errorLabel UILabel that is displayed.
+  @IBInspectable
+  open let errorLabel = UILabel()
+  
+  /// The errorLabel text value.
+  @IBInspectable
+  open var error: String? {
+    get {
+      return errorLabel.text
     }
-    
-    /**
-     Prepares the view instance when intialized. When subclassing,
-     it is recommended to override the prepare method
-     to initialize property values and other setup operations.
-     The super.prepare method should always be called immediately
-     when subclassing.
-     */
-    open override func prepare() {
-        super.prepare()
-        isErrorRevealed = false
-        detailColor = Color.red.base
+    set(value) {
+      errorLabel.text = value
+      layoutSubviews()
     }
+  }
+  
+  /// Error text color
+  @IBInspectable
+  open var errorColor = Color.red.base {
+    didSet {
+      errorLabel.textColor = errorColor
+    }
+  }
+  
+  /// Vertical distance for the errorLabel from the divider.
+  @IBInspectable
+  open var errorVerticalOffset: CGFloat = 8 {
+    didSet {
+      layoutSubviews()
+    }
+  }
+  
+  /// Hide or show error text.
+  open var isErrorRevealed: Bool {
+    get {
+      return !errorLabel.isHidden
+    }
+    set {
+      errorLabel.isHidden = !newValue
+      detailLabel.isHidden = newValue
+    }
+  }
+  
+  open override func prepare() {
+    super.prepare()
+    isErrorRevealed = false
+    prepareErrorLabel()
+  }
+  
+  /// Prepares the errorLabel.
+  func prepareErrorLabel() {
+    errorLabel.font = RobotoFont.regular(with: 12)
+    errorLabel.numberOfLines = 0
+    errorColor = { errorColor }() // call didSet
+    addSubview(errorLabel)
+  }
+  
+  open override func layoutSubviews() {
+    super.layoutSubviews()
+    layoutBottomLabel(label: errorLabel, verticalOffset: errorVerticalOffset)
+  }
 }

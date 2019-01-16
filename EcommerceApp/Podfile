@@ -9,7 +9,7 @@ target 'EcommerceApp' do
 
   pod 'Alamofire', '~> 4.3'
   pod "AlamofireRSSParser"
-  pod 'ObjectMapper', '~> 2.2'
+  pod 'ObjectMapper', '~> 3.4'
 
   pod 'FacebookCore'
   pod 'FacebookLogin'

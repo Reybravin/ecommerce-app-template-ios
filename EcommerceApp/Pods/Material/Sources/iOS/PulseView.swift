@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2016, Daniel Dahan and CosmicMind, Inc. <http://cosmicmind.com>.
+ * Copyright (C) 2015 - 2018, Daniel Dahan and CosmicMind, Inc. <http://cosmicmind.com>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,106 +29,103 @@
  */
 
 import UIKit
+import Motion
 
-open class PulseView: View, Pulseable {
-    /// A Pulse reference.
-    fileprivate var pulse: Pulse!
-    
-    /// PulseAnimation value.
-    open var pulseAnimation: PulseAnimation {
-        get {
-            return pulse.animation
-        }
-        set(value) {
-            pulse.animation = value
-        }
+open class PulseView: View, Pulseable, PulseableLayer {
+  /// A Pulse reference.
+  internal var pulse: Pulse!
+  
+  /// A reference to the pulse layer.
+  internal var pulseLayer: CALayer? {
+    return pulse.pulseLayer
+  }
+  
+  /// PulseAnimation value.
+  open var pulseAnimation: PulseAnimation {
+    get {
+      return pulse.animation
     }
-    
-    /// PulseAnimation color.
-    @IBInspectable
-    open var pulseColor: UIColor {
-        get {
-            return pulse.color
-        }
-        set(value) {
-            pulse.color = value
-        }
+    set(value) {
+      pulse.animation = value
     }
-    
-    /// Pulse opacity.
-    @IBInspectable
-    open var pulseOpacity: CGFloat {
-        get {
-            return pulse.opacity
-        }
-        set(value) {
-            pulse.opacity = value
-        }
+  }
+  
+  /// PulseAnimation color.
+  @IBInspectable
+  open var pulseColor: UIColor {
+    get {
+      return pulse.color
     }
-	
-    /**
-     Triggers the pulse animation.
-     - Parameter point: A Optional point to pulse from, otherwise pulses
-     from the center.
-     */
-    open func pulse(point: CGPoint? = nil) {
-        let p = point ?? center
-        
-        pulse.expandAnimation(point: p)
-        Motion.delay(time: 0.35) { [weak self] in
-            self?.pulse.contractAnimation()
-        }
+    set(value) {
+      pulse.color = value
     }
-    
-    /**
-     A delegation method that is executed when the view has began a
-     touch event.
-     - Parameter touches: A set of UITouch objects.
-     - Parameter event: A UIEvent object.
-     */
-    open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        pulse.expandAnimation(point: layer.convert(touches.first!.location(in: self), from: layer))
+  }
+  
+  /// Pulse opacity.
+  @IBInspectable
+  open var pulseOpacity: CGFloat {
+    get {
+      return pulse.opacity
     }
-    
-    /**
-     A delegation method that is executed when the view touch event has
-     ended.
-     - Parameter touches: A set of UITouch objects.
-     - Parameter event: A UIEvent object.
-     */
-    open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
-        pulse.contractAnimation()
+    set(value) {
+      pulse.opacity = value
     }
-    
-    /**
-     A delegation method that is executed when the view touch event has
-     been cancelled.
-     - Parameter touches: A set of UITouch objects.
-     - Parameter event: A UIEvent object.
-     */
-    open override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesCancelled(touches, with: event)
-        pulse.contractAnimation()
+  }
+  
+  /**
+   Triggers the pulse animation.
+   - Parameter point: A Optional point to pulse from, otherwise pulses
+   from the center.
+   */
+  open func pulse(point: CGPoint? = nil) {
+    pulse.expand(point: point ?? center)
+    Motion.delay(0.35) { [weak self] in
+      self?.pulse.contract()
     }
-    
-    /**
-     Prepares the view instance when intialized. When subclassing,
-     it is recommended to override the prepare method
-     to initialize property values and other setup operations.
-     The super.prepare method should always be called immediately
-     when subclassing.
-     */
-    open override func prepare() {
-        super.prepare()
-        preparePulse()
-    }
+  }
+  
+  /**
+   A delegation method that is executed when the view has began a
+   touch event.
+   - Parameter touches: A set of UITouch objects.
+   - Parameter event: A UIEvent object.
+   */
+  open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    super.touchesBegan(touches, with: event)
+    pulse.expand(point: layer.convert(touches.first!.location(in: self), from: layer))
+  }
+  
+  /**
+   A delegation method that is executed when the view touch event has
+   ended.
+   - Parameter touches: A set of UITouch objects.
+   - Parameter event: A UIEvent object.
+   */
+  open override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    super.touchesEnded(touches, with: event)
+    pulse.contract()
+  }
+  
+  /**
+   A delegation method that is executed when the view touch event has
+   been cancelled.
+   - Parameter touches: A set of UITouch objects.
+   - Parameter event: A UIEvent object.
+   */
+  open override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+    super.touchesCancelled(touches, with: event)
+    pulse.contract()
+  }
+  
+  open override func prepare() {
+    super.prepare()
+    preparePulse()
+  }
 }
 
 extension PulseView {
-    /// Prepares the pulse motion.
-    fileprivate func preparePulse() {
-        pulse = Pulse(pulseView: self, pulseLayer: visualLayer)
-    }
+  /// Prepares the pulse motion.
+  fileprivate func preparePulse() {
+    pulse = Pulse(pulseView: self, pulseLayer: visualLayer)
+  }
 }
